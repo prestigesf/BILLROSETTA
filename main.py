@@ -28,7 +28,7 @@ async def analyze_and_appeal(request: BillAnalysisRequest):
 
         appeal_text = (
             f"RE: Unauthorized Upcoding for CPT Code {item.cpt_code.upper()}\n\n"
-            f"Facility charged ${item.charged_amount:.2f}. Live Medicare rate is ${live_rate:.2f}. "
+            f"Facility charged ${item.charged_amount:.2f}. Medicare rate is ${live_rate:.2f}. "
             f"Overcharge: ${item.charged_amount - live_rate:.2f}. "
             f"Requesting immediate adjustment."
         )
