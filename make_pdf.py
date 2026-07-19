@@ -15,8 +15,11 @@ FILES = [
     ("README.md", "README"),
     ("main.py", "main.py — FastAPI app"),
     ("server.py", "server.py — MCP server (stdio)"),
+    ("brightdata.py", "brightdata.py — Web Unlocker client"),
     ("verify_16_run.py", "verify_16_run.py — pytest smoke test"),
     ("verify_mcp.py", "verify_mcp.py — MCP client session test"),
+    ("test_server.py", "test_server.py — MCP tool import test"),
+    ("test_brightdata.py", "test_brightdata.py — scraper tests"),
     ("requirements.txt", "requirements.txt"),
     ("pyproject.toml", "pyproject.toml"),
 ]
