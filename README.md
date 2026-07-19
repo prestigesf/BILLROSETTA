@@ -17,14 +17,43 @@ Two ways in, both verified:
   Claude Desktop or Cursor can hand over a parsed bill and get the appeal
   packet back in one call
 
-## What is mocked
+## Bright Data status — read this before trusting a number
 
-**Medicare rates are not live.** `scrape_live_medicare_rate` returns values
-from a 4-entry static table (99214=$110.50, 99215=$150.75, 99283=$250.00,
-80053=$45.00) and falls back to $125.00 for anything else. No network call is
-made. `requests` and `BRIGHT_DATA_API_KEY` are wired up in the class but
-currently unused — the Bright Data lookup is the next piece of work, not a
-finished one. Treat the dollar figures as illustrative.
+The Web Unlocker integration is **written but not yet proven against the live
+API**, because no token has been issued to this project yet.
+
+What is tested (`test_brightdata.py`, 10 cases): request construction matches
+Bright Data's documented Web Unlocker shape, auth header, zone and format
+fields, response parsing, and fallback on timeout / junk response.
+
+What is untested: the actual network call, and whether `parse_rate` matches
+CMS's real HTML. The regex is written against an assumed page shape and
+should be expected to need adjustment on first live run.
+
+Without a token the app returns rates from a 4-entry static table
+(99214=$110.50, 99215=$150.75, 99283=$250.00, 80053=$45.00, default $125.00).
+
+**Every response says which path produced it.** Each line carries
+`rate_source` (`brightdata-live` or `static-fallback:<reason>`) and the
+payload carries `rates_are_live`. If that flag is false, the dollar figures
+are placeholders and must not go into a real appeal.
+
+To go live:
+
+    export BRIGHT_DATA_API_KEY=<token>
+    export BRIGHT_DATA_ZONE=<your web unlocker zone>
+
+Then run one lookup and check `rate_source` is `brightdata-live` rather than
+a fallback — that is the moment this becomes real, and it has not happened yet.
+
+### Why scraping at all
+
+Medicare pays a CPT at `[(work RVU x work GPCI) + (PE RVU x PE GPCI) +
+(MP RVU x MP GPCI)] x CF`, where GPCIs vary by locality and CY2026's
+conversion factor is $33.4009. CMS publishes this, but the lookup tool is a
+JS SPA that returns nothing to plain HTTP — hence Web Unlocker. If CMS's bulk
+RVU/GPCI files turn out to be easier to consume, that is the better path and
+this client becomes unnecessary.
 
 ## Stack
 

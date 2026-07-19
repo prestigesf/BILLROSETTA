@@ -1,18 +1,10 @@
-import os
-import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 
+from brightdata import BrightDataScraper
+
 app = FastAPI(title="BillRosetta + Moss/Bright Data Extension")
-
-class BrightDataScraper:
-    def __init__(self, api_key: str = os.getenv("BRIGHT_DATA_API_KEY", "DEMO_KEY")):
-        self.api_key = api_key
-
-    def scrape_live_medicare_rate(self, cpt_code: str, zip_code: str) -> float:
-        mock_rates = {"99214": 110.50, "99215": 150.75, "99283": 250.00, "80053": 45.00}
-        return mock_rates.get(cpt_code.upper(), 125.00)
 
 scraper = BrightDataScraper()
 
@@ -31,7 +23,8 @@ async def analyze_and_appeal(request: BillAnalysisRequest):
     total_overcharge = 0.0
 
     for item in request.line_items:
-        live_rate = scraper.scrape_live_medicare_rate(item.cpt_code, request.zip_code)
+        lookup = scraper.get_rate(item.cpt_code, request.zip_code)
+        live_rate = lookup["rate"]
 
         appeal_text = (
             f"RE: Unauthorized Upcoding for CPT Code {item.cpt_code.upper()}\n\n"
@@ -47,6 +40,7 @@ async def analyze_and_appeal(request: BillAnalysisRequest):
             "cpt_code": item.cpt_code,
             "hospital_charge": item.charged_amount,
             "live_medicare_rate": live_rate,
+            "rate_source": lookup["source"],
             "overcharge_amount": overcharge,
             "appeal_text": appeal_text
         })
@@ -54,6 +48,7 @@ async def analyze_and_appeal(request: BillAnalysisRequest):
     return {
         "hospital": request.hospital_name,
         "total_identified_overcharge": total_overcharge,
+        "rates_are_live": scraper.is_live,
         "appeals_generated": results
     }
 
