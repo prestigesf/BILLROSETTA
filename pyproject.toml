@@ -10,3 +10,7 @@ requires-python = ">=3.10"
 [tool.pytest.ini_options]
 testpaths = ["."]
 python_files = ["test_*.py", "verify_*.py"]
+markers = [
+    "integration: live network tests (require API tokens; skipped by default)",
+]
+addopts = "-m 'not integration'"
